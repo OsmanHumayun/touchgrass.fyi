@@ -43,7 +43,7 @@ if prompt:
     script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
     
 
-    st.write(suggestions)
+    
     st.write(script)
     
     with st.expander('Suggestions History'):
