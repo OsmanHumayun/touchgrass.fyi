@@ -22,7 +22,7 @@ suggestions_template = PromptTemplate(
 
 script_template = PromptTemplate(
     input_variables = ['suggestions', 'wikipedia_research'],
-    template = 'use a condescending and sassy tone to give me a list of some events happening around me based on these suggestions:{suggestions} while leveraging this wikipedia research:{wikipedia_research}'
+    template = 'give me an idea of some events happening around me based on these suggestions:{suggestions} while leveraging this wikipedia research:{wikipedia_research}'
 )
 
 # Memory 
@@ -43,7 +43,7 @@ if prompt:
     script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
     
 
-    if st.button("Touch Grass"): st.write(script)
+    st.write(script)
     
     with st.expander('Suggestions History'):
         st.info(suggestions_memory.buffer)
