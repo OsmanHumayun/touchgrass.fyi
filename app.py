@@ -11,7 +11,7 @@ os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
 
 # App framework
 st.title('TouchGrass.fyi')
-prompt = st.text_input('Input your location here')
+prompt = st.text_input('Input your location here to get some suggestions on what you can do outside, NERD')
 
 
 # Prompt templates
@@ -22,7 +22,7 @@ suggestions_template = PromptTemplate(
 
 script_template = PromptTemplate(
     input_variables = ['suggestions', 'wikipedia_research'],
-    template = 'give me an idea of some events happening around me based on these suggestions:{suggestions} while leveraging this wikipedia research:{wikipedia_research}'
+    template = 'use a condescending and sassy tone to give me a list of some events happening around me based on these suggestions:{suggestions} while leveraging this wikipedia research:{wikipedia_research}'
 )
 
 # Memory 
