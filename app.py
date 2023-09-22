@@ -9,7 +9,6 @@ from langchain.tools import Tool
 from langchain.utilities import GoogleSearchAPIWrapper
 
 os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
-
 os.environ["GOOGLE_CSE_ID"] = st.secrets['GOOGLE_CSE_ID']
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
 
@@ -42,18 +41,13 @@ suggestions_chain = LLMChain(llm=llm, prompt = suggestions_template,verbose=True
 script_chain = LLMChain(llm=llm, prompt = script_template,verbose=True, output_key = 'script', memory=script_memory )
 wiki = WikipediaAPIWrapper()
 search = GoogleSearchAPIWrapper()
-tool = Tool(
-    name="Google Search",
-    description="Search Google for recent results.",
-    func=search.run,
-)
+
 
 
 #show stuff to the screen if there's a prompt
 if prompt: 
     suggestions = suggestions_chain.run(prompt)
     wiki_research = wiki.run(prompt)
-    google_research = tool.run(prompt)
     script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
     
 
