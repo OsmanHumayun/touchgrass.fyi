@@ -53,7 +53,7 @@ tool = Tool(
 if prompt: 
     suggestions = suggestions_chain.run(prompt)
     wiki_research = wiki.run(prompt)
-    tool.run(prompt)
+    google_research = tool.run(prompt)
     script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
     
 
