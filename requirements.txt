@@ -4,3 +4,4 @@ openai
 wikipedia
 chromadb
 tiktoken
+google-api-python-client
