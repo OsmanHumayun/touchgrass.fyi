@@ -4,12 +4,14 @@ from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain.memory import ConversationBufferMemory
-from langchain.utilities import GoogleSearchAPIWrapper
+from langchain.utilities import WikipediaAPIWrapper
 from langchain.tools import Tool
+from langchain.utilities import GoogleSearchAPIWrapper
 
 os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
 os.environ["GOOGLE_CSE_ID"] = st.secrets['GOOGLE_CSE_ID']
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
+
 
 # App framework
 st.title('TouchGrass.fyi')
@@ -21,40 +23,51 @@ touch_grass_button = st.button('Touch Grass')
 # Prompt templates
 suggestions_template = PromptTemplate(
     input_variables=['location', 'selected_categories'],
-    template='Given that I\'m interested in {selected_categories}, provide suggestions on how I can spend time outdoors if I live in {location}'
+    template='Given that Im interested in {selected_categories}, provide suggestions on how I can spend time outdoors if I live in {location}'
 )
 
 script_template = PromptTemplate(
-    input_variables=['suggestions', 'google_search_results'],
-    template='give me an idea of some location specific activities near me based on these suggestions:{suggestions} while leveraging this Google search:{google_search_results}'
+    input_variables=['suggestions'],
+    template='Here are some location-specific activities near you based on these suggestions: {suggestions}'
 )
 
 # Memory 
 suggestions_memory = ConversationBufferMemory(input_key= 'location', memory_key= 'chat history')
 script_memory = ConversationBufferMemory(input_key= 'suggestions', memory_key= 'chat history')
 
-# Llms and Google Search setup
+
+#Llms
 llm = OpenAI(temperature=0.9)
-suggestions_chain = LLMChain(llm=llm, prompt = suggestions_template, verbose=True, output_key = 'suggestions', memory=suggestions_memory)
-script_chain = LLMChain(llm=llm, prompt = script_template, verbose=True, output_key = 'script', memory=script_memory)
+suggestions_chain = LLMChain(llm=llm, prompt = suggestions_template,verbose=True, output_key = 'suggestions', memory=suggestions_memory)
+script_chain = LLMChain(llm=llm, prompt = script_template,verbose=True, output_key = 'script', memory=script_memory )
+wiki = WikipediaAPIWrapper()
 search = GoogleSearchAPIWrapper()
 
-# Execute if the button is clicked
+def google_search_for_suggestions(suggestions_list):
+    paired_results = []
+    for suggestion in suggestions_list:
+        results = search.results(suggestion, 1)  # Get top result
+        if results and results[0].get('Link'):
+            paired_results.append((suggestion, results[0]['Link']))
+    return paired_results
+
+#show stuff to the screen if there's a prompt
 if touch_grass_button:
     if prompt and selected_categories:
         formatted_categories = ', '.join(selected_categories)
         suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
-        google_search_results = search.run(suggestions)
-        
-        script = script_chain.run(suggestions=suggestions, google_search_results=google_search_results)
 
-        st.write(script)
-        
-        with st.expander('Suggestions History'):
-            st.info(suggestions_memory.buffer)
+        paired_google_links = google_search_for_suggestions(suggestions)
 
-        with st.expander('Script History'):
-            st.info(script_memory.buffer)    
+        # Directly display the suggestions with their links
+        for suggestion, link in paired_google_links:
+            st.write(suggestion)  # Display the suggestion
+            st.markdown(f"[Link to top search result]({link})")  # Display the link as a clickable hyperlink
 
-        with st.expander('Google Search Results'):
-            st.info(google_search_results)
+    
+    with st.expander('Suggestions History'):
+        st.info(suggestions_memory.buffer)
+
+    with st.expander('Script History'):
+        st.info(script_memory.buffer)    
+
