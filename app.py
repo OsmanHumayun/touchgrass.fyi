@@ -50,17 +50,16 @@ if touch_grass_button:
     if prompt and selected_categories:
         formatted_categories = ', '.join(selected_categories)
         suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
-        wiki_research = wiki.run(prompt)
-        script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
+        google_results = search.run(suggestions)  # Perform Google search using suggestions
+        script = script_chain.run(suggestions=suggestions, google_research=google_results)  # Update the prompt template variable
+        st.write(suggestions)
+        
+        with st.expander('Suggestions History'):
+            st.info(suggestions_memory.buffer)
+            
+        with st.expander('Script History'):
+            st.info(script_memory.buffer)
+            
+        with st.expander('Google Research'):  # Display the Google search results
+            st.info(google_results)
     
-
-    st.write(suggestions)
-    
-    with st.expander('Suggestions History'):
-        st.info(suggestions_memory.buffer)
-
-    with st.expander('Script History'):
-        st.info(script_memory.buffer)    
-
-    with st.expander('Wikipedia Research'):
-        st.info(wiki_research) 
