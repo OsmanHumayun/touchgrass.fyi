@@ -66,9 +66,12 @@ if touch_grass_button:
         for suggestion in suggestion_list:
             # Make an individual call to the API for each suggestion
             google_result = search.run(suggestion)
-            
-            # Fetch the link from the result and display alongside the suggestion
-            link = google_result['link']
-            st.write(f"**{suggestion}** - [Link]({link})")
+    
+    # Ensure the result contains the 'link' key
+    link = google_result.get('link')
+    if link:
+        st.write(f"**{suggestion}** - [Link]({link})")
+    else:
+        st.write(f"**{suggestion}** - No top link found")
         
        
