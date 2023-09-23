@@ -13,16 +13,16 @@ os.environ["GOOGLE_CSE_ID"] = st.secrets['GOOGLE_CSE_ID']
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
 
 
-
 # App framework
 st.title('TouchGrass.fyi')
 prompt = st.text_input('Input your location here to get some suggestions on what you can do outside')
-
+categories = ["Sports", "Arts & Theatre", "Comedy", "Family", "Nature"]
+selected_categories = st.multiselect("Select categories of activities you're interested in:", categories)
 
 # Prompt templates
 suggestions_template = PromptTemplate(
-    input_variables = ['location'],
-    template = 'give me suggestions of how I can spend time outdoors, disconnect from technology, and engage with the physical world if I live in {location}'
+    input_variables=['location', 'selected_categories'],
+    template='Given that Im interested in {selected_categories}, provide suggestions on how I can spend time outdoors if I live in {location}'
 )
 
 script_template = PromptTemplate(
@@ -45,8 +45,9 @@ search = GoogleSearchAPIWrapper()
 
 
 #show stuff to the screen if there's a prompt
-if prompt: 
-    suggestions = suggestions_chain.run(prompt)
+if prompt and selected_categories:
+    formatted_categories = ', '.join(selected_categories)
+    suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
     wiki_research = wiki.run(prompt)
     script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
     
