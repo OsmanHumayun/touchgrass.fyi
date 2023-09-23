@@ -16,14 +16,14 @@ os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
 st.title('TouchGrass.fyi')
 prompt = st.text_input('Input your location here to get some suggestions on what you can do outside')
 
-categories = ["Sports", "Arts & Theatre", "Comedy", "Family", "Nature"]
+categories = ["Sports", "Arts & Theatre", "Family", "Nature"]
 selected_categories = st.multiselect("Select categories of activities you're interested in:", categories)
-custom_category = st.text_input("Enter your own category if it's not listed above:")
+custom_category = st.text_input("Enter your own interest if it's not listed above:")
 
 if custom_category:
     selected_categories.append(custom_category)
 
-touch_grass_button = st.button('Touch Grass')
+touch_grass_button = st.button('Touch Grass 👉🌿')
 
 # Prompt templates
 suggestions_template = PromptTemplate(
@@ -45,17 +45,30 @@ llm = OpenAI(temperature=0.9)
 suggestions_chain = LLMChain(llm=llm, prompt=suggestions_template, verbose=True, output_key='suggestions', memory=suggestions_memory)
 script_chain = LLMChain(llm=llm, prompt=script_template, verbose=True, output_key='script', memory=script_memory)
 wiki = WikipediaAPIWrapper()
-search = GoogleSearchAPIWrapper()
+search = GoogleSearchAPIWrapper(k=1)
+
+
+# Extract individual suggestions from the numbered list
+def extract_suggestions_from_list(suggestions_text):
+    suggestions = suggestions_text.split("\n")
+    # Remove numbering and strip any whitespace
+    return [suggestion.split(" ", 1)[1].strip() for suggestion in suggestions if suggestion]
+
 
 # Execute when button is clicked
 if touch_grass_button:
     if prompt and selected_categories:
         formatted_categories = ', '.join(selected_categories)
-        suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
+        suggestions_text = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
         
-        wiki_research = wiki.run(prompt)
-        script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
-    
-        st.write(suggestions)
+        suggestion_list = extract_suggestions_from_list(suggestions_text)
+        
+        for suggestion in suggestion_list:
+            # Make an individual call to the API for each suggestion
+            google_result = search.run(suggestion)
+            
+            # Fetch the link from the result and display alongside the suggestion
+            link = google_result['link']
+            st.write(f"**{suggestion}** - [Link]({link})")
         
        
