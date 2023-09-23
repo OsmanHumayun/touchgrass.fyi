@@ -4,14 +4,12 @@ from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain.memory import ConversationBufferMemory
-from langchain.utilities import WikipediaAPIWrapper
 from langchain.tools import Tool
 from langchain.utilities import GoogleSearchAPIWrapper
 
 os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
 os.environ["GOOGLE_CSE_ID"] = st.secrets['GOOGLE_CSE_ID']
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
-
 
 # App framework
 st.title('TouchGrass.fyi')
@@ -23,51 +21,36 @@ touch_grass_button = st.button('Touch Grass')
 # Prompt templates
 suggestions_template = PromptTemplate(
     input_variables=['location', 'selected_categories'],
-    template='Given that Im interested in {selected_categories}, provide one suggestion on how I can spend time outdoors if I live in {location}'
-)
-
-script_template = PromptTemplate(
-    input_variables=['suggestions'],
-    template='Here are some location-specific activities near you based on these suggestions: {suggestions}'
+    template='Given that I\'m interested in {selected_categories}, provide one suggestion on how I can spend time outdoors if I live in {location}'
 )
 
 # Memory 
-suggestions_memory = ConversationBufferMemory(input_key= 'location', memory_key= 'chat history')
-script_memory = ConversationBufferMemory(input_key= 'suggestions', memory_key= 'chat history')
+suggestions_memory = ConversationBufferMemory(input_key='location', memory_key='chat history')
 
-
-#Llms
+# Llms
 llm = OpenAI(temperature=0.9)
-suggestions_chain = LLMChain(llm=llm, prompt = suggestions_template,verbose=True, output_key = 'suggestions', memory=suggestions_memory)
-script_chain = LLMChain(llm=llm, prompt = script_template,verbose=True, output_key = 'script', memory=script_memory )
-wiki = WikipediaAPIWrapper()
+suggestions_chain = LLMChain(llm=llm, prompt=suggestions_template, verbose=True, output_key='suggestions', memory=suggestions_memory)
 search = GoogleSearchAPIWrapper()
 
-def google_search_for_suggestions(suggestions_list):
-    paired_results = []
-    for suggestion in suggestions_list:
-        results = search.results(suggestion, 1)  # Get top result
-        if results and results[0].get('Link'):
-            paired_results.append((suggestion, results[0]['Link']))
-    return paired_results
+def google_search_for_suggestion(suggestion):
+    results = search.results(suggestion, 1)  # Get top result
+    return results[0]['Link'] if results and results[0].get('Link') else None
 
-#show stuff to the screen if there's a prompt
 if touch_grass_button:
     if prompt and selected_categories:
         formatted_categories = ', '.join(selected_categories)
-        suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
+        suggestion = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
 
-        paired_google_links = google_search_for_suggestions(suggestions)
+        # If the model returns multiple suggestions (in a list), take only the first one
+        if isinstance(suggestion, list):
+            suggestion = suggestion[0]
 
-        # Directly display the suggestions with their links
-        for suggestion, link in paired_google_links:
-            st.write(suggestion)  # Display the suggestion
-            st.markdown(f"[Link to top search result]({link})")  # Display the link as a clickable hyperlink
+        google_link = google_search_for_suggestion(suggestion)
 
-    
-    with st.expander('Suggestions History'):
-        st.info(suggestions_memory.buffer)
+        st.write(suggestion)  # Display the suggestion
+        if google_link:
+            st.markdown(f"[Link to top search result]({google_link})")  # Display the link as a clickable hyperlink
 
-    with st.expander('Script History'):
-        st.info(script_memory.buffer)    
-
+        # Display other info
+        with st.expander('Suggestions History'):
+            st.info(suggestions_memory.buffer)
