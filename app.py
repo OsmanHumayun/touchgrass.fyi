@@ -44,7 +44,7 @@ if touch_grass_button:
     if prompt and selected_categories:
         formatted_categories = ', '.join(selected_categories)
         suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
-        google_search_results = search.run(prompt)
+        google_search_results = search.run(suggestions)
         
         script = script_chain.run(suggestions=suggestions, google_search_results=google_search_results)
 
