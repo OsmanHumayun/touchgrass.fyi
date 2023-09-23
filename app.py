@@ -16,14 +16,14 @@ os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
 # App framework
 st.title('TouchGrass.fyi')
 prompt = st.text_input('Input your location here to get some suggestions on what you can do outside')
-categories = ["Sports", "Arts & Theatre", "Comedy", "Family", "Nature"]
+categories = ["Sports", "Arts & Theatre", "Family", "Nature"]
 selected_categories = st.multiselect("Select categories of activities you're interested in:", categories)
 touch_grass_button = st.button('Touch Grass')
 
 # Prompt templates
 suggestions_template = PromptTemplate(
     input_variables=['location', 'selected_categories'],
-    template='Given that Im interested in {selected_categories}, provide suggestions on how I can spend time outdoors if I live in {location}'
+    template='Given that Im interested in {selected_categories}, provide one suggestion on how I can spend time outdoors if I live in {location}'
 )
 
 script_template = PromptTemplate(
