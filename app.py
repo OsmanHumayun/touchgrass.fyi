@@ -18,6 +18,7 @@ st.title('TouchGrass.fyi')
 prompt = st.text_input('Input your location here to get some suggestions on what you can do outside')
 categories = ["Sports", "Arts & Theatre", "Comedy", "Family", "Nature"]
 selected_categories = st.multiselect("Select categories of activities you're interested in:", categories)
+touch_grass_button = st.button('Touch Grass')
 
 # Prompt templates
 suggestions_template = PromptTemplate(
@@ -45,14 +46,15 @@ search = GoogleSearchAPIWrapper()
 
 
 #show stuff to the screen if there's a prompt
-if prompt and selected_categories:
-    formatted_categories = ', '.join(selected_categories)
-    suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
-    wiki_research = wiki.run(prompt)
-    script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
+if touch_grass_button:
+    if prompt and selected_categories:
+        formatted_categories = ', '.join(selected_categories)
+        suggestions = suggestions_chain.run(location=prompt, selected_categories=formatted_categories)
+        wiki_research = wiki.run(prompt)
+        script = script_chain.run(suggestions=suggestions, wikipedia_research=wiki_research)
     
 
-    st.write(script)
+    st.write(suggestions)
     
     with st.expander('Suggestions History'):
         st.info(suggestions_memory.buffer)
